@@ -1,0 +1,399 @@
+{
+  "keywords": [
+    {
+      "word": "policy",
+      "score": 0.08850426299872322
+    },
+    {
+      "word": "models",
+      "score": 0.07909841352866659
+    },
+    {
+      "word": "framework",
+      "score": 0.062452755358842094
+    },
+    {
+      "word": "learning",
+      "score": 0.06103143362775399
+    },
+    {
+      "word": "retrieval",
+      "score": 0.06059584228242679
+    },
+    {
+      "word": "systems",
+      "score": 0.060528068599919146
+    },
+    {
+      "word": "different",
+      "score": 0.059926463004171544
+    },
+    {
+      "word": "model",
+      "score": 0.059054009096712545
+    },
+    {
+      "word": "point",
+      "score": 0.058805595650270326
+    },
+    {
+      "word": "benchmark",
+      "score": 0.05778580497079102
+    },
+    {
+      "word": "code",
+      "score": 0.056723099101570966
+    },
+    {
+      "word": "graph",
+      "score": 0.05635850833351714
+    },
+    {
+      "word": "bench",
+      "score": 0.056193724611293724
+    },
+    {
+      "word": "local",
+      "score": 0.05616486132969651
+    },
+    {
+      "word": "task",
+      "score": 0.05562144215335586
+    },
+    {
+      "word": "vision",
+      "score": 0.05345145801823647
+    },
+    {
+      "word": "time",
+      "score": 0.05280084567967516
+    },
+    {
+      "word": "inference",
+      "score": 0.052157047548040236
+    },
+    {
+      "word": "agents",
+      "score": 0.05144747669562342
+    },
+    {
+      "word": "state",
+      "score": 0.05116488286254058
+    },
+    {
+      "word": "language",
+      "score": 0.05032065064082899
+    },
+    {
+      "word": "training",
+      "score": 0.05005366214504611
+    },
+    {
+      "word": "audit",
+      "score": 0.0496862758279878
+    },
+    {
+      "word": "clinical",
+      "score": 0.049537518905857066
+    },
+    {
+      "word": "reasoning",
+      "score": 0.048578556867260446
+    },
+    {
+      "word": "cost",
+      "score": 0.04839061662522339
+    },
+    {
+      "word": "thiele",
+      "score": 0.047928712822136454
+    },
+    {
+      "word": "data",
+      "score": 0.04620961268999081
+    },
+    {
+      "word": "methods",
+      "score": 0.04480005800391328
+    },
+    {
+      "word": "askchem",
+      "score": 0.04458834938228234
+    },
+    {
+      "word": "evaluation",
+      "score": 0.04421580018287752
+    },
+    {
+      "word": "self",
+      "score": 0.043136024271998474
+    },
+    {
+      "word": "optimization",
+      "score": 0.042831296281223556
+    },
+    {
+      "word": "precision",
+      "score": 0.042578638632698264
+    },
+    {
+      "word": "structural",
+      "score": 0.04172014777477254
+    },
+    {
+      "word": "tasks",
+      "score": 0.041718993891746936
+    },
+    {
+      "word": "performance",
+      "score": 0.04135394369919908
+    },
+    {
+      "word": "agent",
+      "score": 0.04102386189985462
+    },
+    {
+      "word": "open",
+      "score": 0.04093397222117401
+    },
+    {
+      "word": "evidence",
+      "score": 0.04016738910396449
+    },
+    {
+      "word": "use",
+      "score": 0.039817586496747034
+    },
+    {
+      "word": "benchmarks",
+      "score": 0.039486605934643954
+    },
+    {
+      "word": "matching",
+      "score": 0.038932648698690654
+    },
+    {
+      "word": "issue",
+      "score": 0.03888948758539379
+    },
+    {
+      "word": "scaling",
+      "score": 0.03881820114039745
+    },
+    {
+      "word": "results",
+      "score": 0.03517782162493811
+    },
+    {
+      "word": "policy optimization",
+      "score": 0.034901246626665335
+    },
+    {
+      "word": "introduce",
+      "score": 0.034832969086544104
+    },
+    {
+      "word": "llm",
+      "score": 0.03464885942534432
+    },
+    {
+      "word": "accuracy",
+      "score": 0.03458159711023914
+    },
+    {
+      "word": "best",
+      "score": 0.03411893403395928
+    },
+    {
+      "word": "token",
+      "score": 0.033832518346914774
+    },
+    {
+      "word": "instructions",
+      "score": 0.03355133676660719
+    },
+    {
+      "word": "paper",
+      "score": 0.03125748299758252
+    },
+    {
+      "word": "opsd",
+      "score": 0.03060931050290896
+    },
+    {
+      "word": "products",
+      "score": 0.029189738272441423
+    },
+    {
+      "word": "prompt",
+      "score": 0.029189738272441423
+    },
+    {
+      "word": "verified",
+      "score": 0.0290046008882702
+    },
+    {
+      "word": "reference",
+      "score": 0.02689401089068151
+    },
+    {
+      "word": "level",
+      "score": 0.024847302357773077
+    }
+  ],
+  "topics": [
+    {
+      "id": 1,
+      "words": [
+        "policy",
+        "models",
+        "framework",
+        "learning",
+        "retrieval",
+        "systems",
+        "different",
+        "model",
+        "point",
+        "benchmark",
+        "code",
+        "graph"
+      ],
+      "score": 0.063405
+    },
+    {
+      "id": 2,
+      "words": [
+        "bench",
+        "local",
+        "task",
+        "vision",
+        "time",
+        "inference",
+        "agents",
+        "state",
+        "language",
+        "training",
+        "audit",
+        "clinical"
+      ],
+      "score": 0.052383
+    },
+    {
+      "id": 3,
+      "words": [
+        "reasoning",
+        "cost",
+        "thiele",
+        "data",
+        "methods",
+        "askchem",
+        "evaluation",
+        "self",
+        "optimization",
+        "precision",
+        "structural",
+        "tasks"
+      ],
+      "score": 0.044725
+    },
+    {
+      "id": 4,
+      "words": [
+        "performance",
+        "agent",
+        "open",
+        "evidence",
+        "use",
+        "benchmarks",
+        "matching",
+        "issue",
+        "scaling",
+        "results",
+        "policy optimization",
+        "introduce"
+      ],
+      "score": 0.038695
+    },
+    {
+      "id": 5,
+      "words": [
+        "llm",
+        "accuracy",
+        "best",
+        "token",
+        "instructions",
+        "paper",
+        "opsd",
+        "products",
+        "prompt",
+        "verified",
+        "reference",
+        "level"
+      ],
+      "score": 0.030977
+    }
+  ],
+  "llm_analysis": {
+    "hotspots": "代理学习与检索系统、可解释性与审计、低成本高效学习、图神经网络在视觉与语言中的应用、临床推理与决策支持、代码生成与自动化、跨学科方法与基准测试。",
+    "trends": "多模态代理与检索融合、端到端检索与推理框架、可解释性与审计机制、低资源学习与迁移、图结构自监督学习、临床安全与伦理评估、强化学习与策略优化、代码与模型的可复现性。",
+    "future_directions": "发展可解释的多代理系统、端到端检索与推理框架、低资源学习与迁移、图结构自监督学习、临床安全与伦理评估、可持续成本优化、跨领域知识图谱、强化学习与策略学习结合、代码与模型的可复现性。",
+    "analysis_summary": "近期论文显示AI研究正向多模态、可解释、低成本方向发展，强调代理与检索系统的集成，临床与视觉任务成为热点，未来将聚焦可解释性、跨学科融合与可持续性。"
+  },
+  "wordcloud": {
+    "path": null
+  },
+  "statistics": {
+    "total_papers": 20,
+    "total_authors": 120,
+    "categories_count": 21,
+    "category_distribution": {
+      "cs.AI": 13,
+      "cs.LG": 12,
+      "cs.CL": 6,
+      "cs.CV": 4,
+      "cs.SE": 3,
+      "cs.MA": 2,
+      "hep-th": 1,
+      "hep-ph": 1,
+      "cs.RO": 1,
+      "cs.IR": 1
+    },
+    "primary_distribution": {
+      "cs.AI": 4,
+      "cs.CV": 3,
+      "cs.CL": 3,
+      "cs.LG": 3,
+      "cs.SE": 2,
+      "hep-th": 1,
+      "cs.RO": 1,
+      "cs.GT": 1,
+      "stat.ML": 1,
+      "cond-mat.str-el": 1
+    },
+    "top_authors": {
+      "Jonathan J. Heckman": 1,
+      "Shani Meynet": 1,
+      "Alessandro Mininno": 1,
+      "Gary Shiu": 1,
+      "Yao Xiao": 1,
+      "Reuben Tan": 1,
+      "Zhen Zhu": 1,
+      "Yuqun Wu": 1,
+      "Jianfeng Gao": 1,
+      "Derek Hoiem": 1
+    },
+    "top_keywords": [
+      "policy",
+      "models",
+      "framework",
+      "learning",
+      "retrieval",
+      "systems",
+      "different",
+      "model",
+      "point",
+      "benchmark"
+    ]
+  },
+  "date": "2026-08-03"
+}

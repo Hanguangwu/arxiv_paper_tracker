@@ -1,0 +1,41 @@
+# ArXiv 论文追踪与分析器 - 配置文件
+# 本文件由后端流水线 (src/main.py) 读取，控制抓取、分析、趋势与邮件等环节。
+
+language: "zh"            # 输出语言: zh 或 en
+
+# ---------- arXiv 抓取配置 ----------
+arxiv:
+  # 研究领域类别（可多选），常见: cs.AI, cs.LG, cs.CV, cs.CL, cs.NE, stat.ML
+  categories:
+    - "cs.LG"
+    - "cs.AI"
+
+  # 关键词过滤（在标题/摘要中做子串匹配）。为空列表表示不过滤。
+  keywords: []
+
+  # 单次抓取的最大论文数量
+  max_results: 20
+
+  # 回溯天数（抓取最近 N 天内提交的论文）
+  days_back: 5
+
+# ---------- LLM 分析配置 ----------
+llm:
+  temperature: 0.2        # 采样温度，值越低越稳定
+  max_tokens: 2048        # 单次生成的最大 token 数
+
+# ---------- 趋势分析配置 ----------
+trend_analysis:
+  enabled: true           # 是否启用整体趋势分析（词云 + 关键词 + 主题）
+  generate_wordcloud: true # 是否生成词云 PNG（依赖 wordcloud + matplotlib，缺失时自动跳过）
+  use_llm: true           # 是否使用 LLM 生成深度趋势解读（热点 / 趋势 / 未来方向）
+
+# ---------- 邮件通知配置 ----------
+email:
+  enabled: true           # 是否启用邮件通知
+  notify_success: true    # 成功时发送
+  notify_failure: true    # 失败时发送
+
+# ---------- 数据存储配置 ----------
+storage:
+  retention_days: 30      # 保留历史 JSON / 报告文件天数（0 表示永久保留）
