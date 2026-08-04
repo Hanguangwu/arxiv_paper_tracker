@@ -1,0 +1,25 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated static site (GitHub Pages bundle built by src/web/export_static.py)
+# Keep the tracked docs/archive/ folder.
+docs/*
+!docs/archive/
+!docs/archive/**
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -47,8 +47,8 @@ def load_config(config_path: str) -> dict:
 
 def _with_defaults(config: dict) -> dict:
     defaults = {
-        "language": "zh",
-        "arxiv": {"categories": ["cs.LG", "cs.AI"], "keywords": [], "max_results": 20, "days_back": 5},
+        "language": "en",
+        "arxiv": {"categories": ["cs.LG", "cs.AI"], "keywords": [], "max_results": 30, "days_back": 7},
         "llm": {"temperature": 0.2, "max_tokens": 2048},
         "trend_analysis": {"enabled": True, "generate_wordcloud": True, "use_llm": True},
         "email": {"enabled": True, "notify_success": True, "notify_failure": True},
@@ -194,27 +194,27 @@ def _send_result_email(config: dict, date: str, result: dict) -> int:
 
 
 def build_report(config: dict, date: str, papers: list, summaries: list, analysis: dict) -> str:
-    """Assemble the per-day Markdown report content."""
+    """Assemble the per-day Markdown report content in English."""
     summary_map = {s.get("id"): s.get("summary", "") for s in summaries}
-    lines = [f"# ArXiv 论文分析报告 - {date}", "", f"- 论文总数: {len(papers)}", "", "## 单篇分析", ""]
+    lines = [f"# ArXiv Paper Analysis Report - {date}", "", f"- Total papers: {len(papers)}", "", "## Per-Paper Analysis", ""]
     for paper in papers:
         lines.append(f"### {paper.get('title', '')}")
-        lines.append(f"**作者**: {', '.join(paper.get('authors', []) or []) or '未知'}")
-        lines.append(f"**类别**: {', '.join(paper.get('categories', []) or [])}")
-        lines.append(f"**发布时间**: {paper.get('published_date', '')}")
-        lines.append(f"**链接**: {paper.get('entry_url', '')}")
+        lines.append(f"**Authors**: {', '.join(paper.get('authors', []) or []) or 'Unknown'}")
+        lines.append(f"**Categories**: {', '.join(paper.get('categories', []) or [])}")
+        lines.append(f"**Published**: {paper.get('published_date', '')}")
+        lines.append(f"**Link**: {paper.get('entry_url', '')}")
         lines.append("")
         lines.append(summary_map.get(paper.get("id")) or "（暂无摘要）")
         if paper.get("abstract"):
             lines.append("")
-            lines.append(f"<details><summary>摘要</summary>\n\n{paper.get('abstract')}\n\n</details>")
+            lines.append(f"<details><summary>Abstract</summary>\n\n{paper.get('abstract')}\n\n</details>")
         lines.append("")
         lines.append("---")
         lines.append("")
 
     keywords = analysis.get("keywords", [])
     if keywords:
-        lines.append("## 高频关键词")
+        lines.append("## Top Keywords")
         lines.append("")
         for kw in keywords[:20]:
             lines.append(f"- {kw.get('word', '')} (score: {kw.get('score', 0):.4f})")
@@ -222,11 +222,11 @@ def build_report(config: dict, date: str, papers: list, summaries: list, analysi
 
     llm = analysis.get("llm_analysis", {}) or {}
     if llm.get("hotspots"):
-        lines.append("## 研究热点")
+        lines.append("## Research Hotspots")
         lines.append(llm.get("hotspots", ""))
         lines.append("")
     if llm.get("analysis_summary"):
-        lines.append("## 分析总结")
+        lines.append("## Analysis Summary")
         lines.append(llm.get("analysis_summary", ""))
     lines.append("")
     return "\n".join(lines)

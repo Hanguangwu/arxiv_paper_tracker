@@ -1,31 +1,57 @@
 /* =========================================================================
- * ArXiv 论文雷达 - 前端应用逻辑
- * 依赖: 仅 Bootstrap 5 (bundle) + 原生 DOM API。所有交互通过事件委托,
- *       不在内联中写任何 onclick。
+ * ArXiv Paper Radar - Frontend application logic
+ * Works in two modes:
+ *   - dynamic (Flask): fetches /api/... endpoints
+ *   - static (GitHub Pages / docs deployment): fetches the generated JSON
+ *     files under /data/... and renders markdown with `marked`.
+ * Mode is selected by window.APP_BASE / window.STATIC_MODE injected into
+ * index.html by Flask (render_template) or by src/web/export_static.py.
+ * Depends only on Bootstrap 5 (bundle) + native DOM API. All interactions use
+ * event delegation; no inline onclick handlers.
  * ========================================================================= */
 'use strict';
 
-/* ---------- 通用工具 ---------- */
+/* ---------- Mode resolution ---------- */
+const STATIC_MODE = window.STATIC_MODE === true;
+const BASE = String(window.APP_BASE || '').replace(/\/+$/, '');
+
+function staticFileFor(urlPath) {
+    const p = String(urlPath).split('?')[0];
+    const parts = p.split('/').filter(Boolean);
+    if (!parts.length || parts[0] !== 'api') return null;
+    const endpoint = parts[1];
+    if (endpoint === 'stats') return 'data/stats.json';
+    if (endpoint === 'categories') return 'data/categories.json';
+    if (endpoint === 'papers' && parts.length === 2) return 'data/papers/latest.json';
+    if (endpoint === 'summaries') return 'data/summaries/latest.json';
+    if (endpoint === 'analysis') return 'data/analysis/latest.json';
+    if (endpoint === 'wordcloud') return 'data/analysis/latest.json';
+    if (endpoint === 'history' && parts.length === 2) return 'data/records/index.json';
+    if (endpoint === 'history' && parts.length === 3) return 'data/summaries/summaries_' + parts[2] + '.json';
+    return null;
+}
+
+/* ---------- Shared utilities ---------- */
 
 function tNoData() {
-    return '<div class="state"><i class="bi bi-inboxes"></i><span>暂无数据</span></div>';
+    return '<div class="state"><i class="bi bi-inboxes"></i><span>No data</span></div>';
 }
 
 function tNo(msg) {
-    return '<div class="state"><i class="bi bi-inboxes"></i><span>' + (msg || '暂无数据') + '</span></div>';
+    return '<div class="state"><i class="bi bi-inboxes"></i><span>' + (msg || 'No data') + '</span></div>';
 }
 
 function tError(msg) {
     return '<div class="state"><i class="bi bi-exclamation-triangle"></i><span>' +
-        (msg || '数据加载失败') + '</span></div>';
+        (msg || 'Failed to load data') + '</span></div>';
 }
 
 function spinner() {
-    return '<div class="state"><div class="spin"></div><span>加载中...</span></div>';
+    return '<div class="state"><div class="spin"></div><span>Loading...</span></div>';
 }
 
 function finger(n) {
-    return (typeof n === 'number' ? n : 0).toLocaleString('zh-CN');
+    return (typeof n === 'number' ? n : 0).toLocaleString('en-US');
 }
 
 function esc(text) {
@@ -39,31 +65,60 @@ function kwWord(kw) {
 }
 
 function authors(list) {
-    if (!list || !list.length) return '未知作者';
+    if (!list || !list.length) return 'Unknown authors';
     if (list.length <= 3) return list.join(', ');
-    return list.slice(0, 3).join(', ') + ' 等 ' + list.length + ' 人';
+    return list.slice(0, 3).join(', ') + ' et al. (' + list.length + ')';
+}
+
+function renderMarkdown(text) {
+    if (window.marked && marked.parse) {
+        try { return marked.parse(String(text)); } catch (e) { /* fall through */ }
+    }
+    return '<p>' + esc(text).replace(/\n/g, '<br>') + '</p>';
+}
+
+function llmFieldHtml(llm, key) {
+    const html = llm[key + '_html'];
+    if (html) return html;
+    if (llm[key]) {
+        return STATIC_MODE ? renderMarkdown(llm[key]) : '<p>' + esc(llm[key]).replace(/\n/g, '<br>') + '</p>';
+    }
+    return '';
+}
+
+function llmFieldPlain(llm, key) {
+    return llm[key + '_html'] || llm[key] || '';
+}
+
+function wordcloudUrl(wc) {
+    if (!wc) return null;
+    const path = (typeof wc.path === 'string' && wc.path) ? wc.path
+        : (typeof wc === 'string' ? wc : null);
+    if (!path) return null;
+    return BASE + '/data/analysis/' + path.split(/[\\/]/).pop();
 }
 
 const $ = (id) => document.getElementById(id);
 
-/** 统一 fetch: 解析 JSON, 失败时抛出含中文提示的错误。 */
+/** Unified fetch: resolves to the API (dynamic) or a static JSON file (static). */
 async function api(url) {
     let res;
+    const target = STATIC_MODE ? BASE + '/' + staticFileFor(url) : url;
     try {
-        res = await fetch(url);
+        res = await fetch(target);
     } catch (e) {
-        throw new Error('网络请求失败');
+        throw new Error('Network request failed');
     }
     let data = null;
-    try { data = await res.json(); } catch (e) { /* 空响应体 */ }
+    try { data = await res.json(); } catch (e) { /* empty body */ }
     if (!res.ok) {
-        const msg = (data && (data.message || data.error)) || '请求失败';
+        const msg = (data && (data.message || data.error)) || 'Request failed';
         throw new Error(msg);
     }
     return data;
 }
 
-/* ---------- 概览 ---------- */
+/* ---------- Overview ---------- */
 async function loadStats() {
     try {
         const d = await api('/api/stats');
@@ -71,18 +126,18 @@ async function loadStats() {
         $('stat-summaries').textContent = finger(d.summaries_count);
         $('stat-categories').textContent = finger(d.categories_count);
         $('stat-keywords').textContent = finger(d.keywords_count);
-        $('stat-update').textContent = d.last_update || '暂无';
+        $('stat-update').textContent = d.last_update || '—';
         $('stat-days').textContent = finger(d.total_days);
         if (!d.papers_count) {
-            $('stat-papers-hint').textContent = '暂无数据';
-            $('stat-categories-hint').textContent = '暂无数据';
+            $('stat-papers-hint').textContent = 'No data';
+            $('stat-categories-hint').textContent = 'No data';
         }
     } catch (e) {
-        $('stat-update').textContent = '加载失败';
+        $('stat-update').textContent = 'Load failed';
     }
 }
 
-/* ---------- 类别下拉 ---------- */
+/* ---------- Category dropdown ---------- */
 async function initCategories() {
     const sel = $('papers-category');
     try {
@@ -93,31 +148,74 @@ async function initCategories() {
             opt.textContent = c.name + ' (' + c.count + ')';
             sel.appendChild(opt);
         });
-    } catch (e) { /* 无类别数据 */ }
+    } catch (e) { /* no category data */ }
 }
 
-/* ---------- 论文列表 ---------- */
+/* ---------- Paper list ---------- */
 const papersState = { page: 1, perPage: 20, q: '', category: '' };
+
+function filterPapers(all) {
+    let list = all || [];
+    if (papersState.category) {
+        list = list.filter(function (p) {
+            return (p.categories || []).indexOf(papersState.category) >= 0;
+        });
+    }
+    if (papersState.q) {
+        const ql = papersState.q.toLowerCase();
+        list = list.filter(function (p) {
+            const hay = [
+                String(p.title || ''),
+                (p.authors || []).join(' '),
+                String(p.abstract || '')
+            ].join(' ').toLowerCase();
+            return hay.indexOf(ql) >= 0;
+        });
+    }
+    return list;
+}
+
+function attachSummaryFlag(list) {
+    // Mark papers that already carry a summary (from summaries json merged earlier).
+    return list.map(function (p) {
+        if (p.summary) { p.__hasSummary = true; }
+        return p;
+    });
+}
 
 async function loadPapers() {
     const box = $('papers-list');
     box.innerHTML = spinner();
-    const params = new URLSearchParams({
-        page: papersState.page,
-        per_page: papersState.perPage,
-        q: papersState.q,
-        category: papersState.category,
-    });
     try {
-        const d = await api('/api/papers?' + params.toString());
-        $('papers-count-line').textContent = '共 ' + d.total + ' 篇';
-        if (!d.papers.length) {
-            box.innerHTML = tNo('暂无匹配的论文');
+        const d = await api('/api/papers?' + new URLSearchParams({
+            page: papersState.page,
+            per_page: papersState.perPage,
+            q: papersState.q,
+            category: papersState.category,
+        }).toString());
+
+        let papers, totalPages;
+        if (STATIC_MODE) {
+            const all = attachSummaryFlag(d.papers || []);
+            const filtered = filterPapers(all);
+            const total = filtered.length;
+            totalPages = Math.max(1, Math.ceil(total / papersState.perPage));
+            const start = (papersState.page - 1) * papersState.perPage;
+            papers = filtered.slice(start, start + papersState.perPage);
+            $('papers-count-line').textContent = total + ' papers';
+        } else {
+            papers = (d.papers || []).map(function (p) { if (p.summary) p.__hasSummary = true; return p; });
+            totalPages = d.total_pages || 0;
+            $('papers-count-line').textContent = 'Total ' + d.total + ' papers';
+        }
+
+        if (!papers.length) {
+            box.innerHTML = tNo('No matching papers');
             renderPagination(0);
             return;
         }
-        box.innerHTML = d.papers.map(paperCard).join('');
-        renderPagination(d.total_pages);
+        box.innerHTML = papers.map(paperCard).join('');
+        renderPagination(totalPages);
     } catch (e) {
         box.innerHTML = tError(e.message);
         renderPagination(0);
@@ -136,15 +234,15 @@ function paperCard(p) {
             '<div class="paper-authors"><i class="bi bi-person-badge"></i> ' + esc(authors(p.authors)) + '</div>' +
             '<p class="paper-abstract">' + esc(p.abstract) + '</p>' +
             '<div class="d-flex flex-wrap gap-2 align-items-center">' + cats +
-                '<span class="stat-pill"><i class="bi bi-calendar3"></i> ' + esc(publishedDate || '暂无日期') + '</span>' +
-                (p.summary ? '<span class="stat-pill notag"><i class="bi bi-stars"></i> 已分析</span>' : '') +
+                '<span class="stat-pill"><i class="bi bi-calendar3"></i> ' + esc(publishedDate || 'No date') + '</span>' +
+                (p.__hasSummary ? '<span class="stat-pill notag"><i class="bi bi-stars"></i> Analyzed</span>' : '') +
                 '<span class="ms-auto d-flex gap-2">' +
                     '<button class="btn btn-sm" data-action="analysis" data-id="' + esc(p.id) +
                         '" style="border-radius:999px;background:var(--accent);color:#fff;border-color:var(--accent);">' +
-                        '<i class="bi bi-stars"></i> 查看分析</button>' +
+                        '<i class="bi bi-stars"></i> View analysis</button>' +
                     '<a class="btn btn-sm btn-outline-secondary" style="border-radius:999px;" href="' +
                         esc(p.entry_url || p.pdf_url || '#') + '" target="_blank" rel="noopener">' +
-                        '<i class="bi bi-box-arrow-up-right"></i> arXiv原文</a>' +
+                        '<i class="bi bi-box-arrow-up-right"></i> arXiv original</a>' +
                 '</span>' +
             '</div>' +
         '</article>';
@@ -176,21 +274,41 @@ function renderPagination(totalPages) {
     btn('&raquo;', cur + 1, cur >= totalPages ? 'disabled' : '');
 }
 
-/* ---------- 论文详情弹窗 ---------- */
+/* ---------- Paper detail modal ---------- */
 function openPaper(id) {
     const title = $('paperModal-title');
     const body = $('paperModal-body');
-    title.textContent = '加载中...';
+    title.textContent = 'Loading...';
     body.innerHTML = spinner();
 
-    api('/api/papers/' + encodeURIComponent(id)).then(function (p) {
+    const done = function (p) {
         title.textContent = p.title || id;
         body.innerHTML = paperDetailHtml(p);
-    }).catch(function (e) {
+    };
+    const fail = function (e) {
         body.innerHTML = tError(e.message);
-    });
+    };
+
+    if (STATIC_MODE) {
+        loadStaticPaper(id).then(done).catch(fail);
+    } else {
+        api('/api/papers/' + encodeURIComponent(id)).then(done).catch(fail);
+    }
 
     bootstrap.Modal.getOrCreateInstance($('paperModal')).show();
+}
+
+async function loadStaticPaper(id) {
+    const papersData = await api('/api/papers');
+    const paper = (papersData.papers || []).find(function (p) { return p.id === id; });
+    if (!paper) throw new Error('Paper not found');
+    const sumsData = await api('/api/summaries');
+    const sum = (sumsData.papers || []).find(function (s) { return s.id === id; });
+    if (sum && sum.summary) {
+        paper.summary = sum.summary;
+        paper.summary_html = renderMarkdown(sum.summary);
+    }
+    return paper;
 }
 
 function paperDetailHtml(p) {
@@ -202,43 +320,43 @@ function paperDetailHtml(p) {
     if (p.summary_html) {
         summaryHtml = p.summary_html;
     } else if (p.summary) {
-        summaryHtml = '<p>' + esc(p.summary) + '</p>';
+        summaryHtml = STATIC_MODE ? renderMarkdown(p.summary) : '<p>' + esc(p.summary) + '</p>';
     } else {
         summaryHtml = '';
     }
 
     const metaRows = [
-        ['作者', authors(p.authors)],
-        ['主分类', p.primary_category || '—'],
-        ['发布时间', (p.published || '—').toString().replace('T', ' ').slice(0, 16)],
-        ['更新日期', (p.updated || '—').toString().replace('T', ' ').slice(0, 16)],
+        ['Authors', authors(p.authors)],
+        ['Primary category', p.primary_category || '—'],
+        ['Published', (p.published || '—').toString().replace('T', ' ').slice(0, 16)],
+        ['Updated', (p.updated || '—').toString().replace('T', ' ').slice(0, 16)],
     ].map(function (r) {
-        return '<div><span class="k">' + esc(r[0]) + '</span>：' + esc(r[1]) + '</div>';
+        return '<div><span class="k">' + esc(r[0]) + '</span>: ' + esc(r[1]) + '</div>';
     }).join('');
 
     return '' +
         '<div class="meta-grid">' + metaRows + '</div>' +
         '<div class="d-flex flex-wrap gap-2 mt-3">' + cats + '</div>' +
-        '<div class="section-title"><i class="bi bi-file-text"></i> 摘要</div>' +
+        '<div class="section-title"><i class="bi bi-file-text"></i> Abstract</div>' +
         '<p class="text-muted">' + esc(p.abstract) + '</p>' +
-        '<div class="section-title"><i class="bi bi-stars"></i> AI 六节分析</div>' +
+        '<div class="section-title"><i class="bi bi-stars"></i> AI six-section analysis</div>' +
         (summaryHtml ? '<div class="summary-body">' + summaryHtml + '</div>'
-                     : '<div>' + tNo('该论文暂无 AI 分析') + '</div>') +
+                     : '<div>' + tNo('No AI analysis for this paper') + '</div>') +
         '<div class="d-flex gap-2 mt-4">' +
             '<a class="btn btn-dark" style="border-radius:999px;" href="' + esc(p.entry_url || '#') + '" target="_blank" rel="noopener">' +
-                '<i class="bi bi-box-arrow-up-right"></i> arXiv 原文页</a>' +
+                '<i class="bi bi-box-arrow-up-right"></i> arXiv page</a>' +
             '<a class="btn btn-outline-secondary" style="border-radius:999px;" href="' + esc(p.pdf_url || '#') + '" target="_blank" rel="noopener">' +
                 '<i class="bi bi-file-earmark-pdf"></i> PDF</a>' +
         '</div>';
 }
 
-/* ---------- 趋势分析 ---------- */
+/* ---------- Trend analysis ---------- */
 async function loadAnalysis() {
     const kwBox = $('trend-keywords');
     const wcBox = $('trend-wordcloud');
 
     let analysis = null;
-    try { analysis = await api('/api/analysis'); } catch (e) { /* 空态处理 */ }
+    try { analysis = await api('/api/analysis'); } catch (e) { /* empty-state handled */ }
 
     if (analysis) {
         $('trend-date').textContent = analysis.date || '—';
@@ -249,7 +367,7 @@ async function loadAnalysis() {
                 return '<span class="kw-chip">' + esc(kwWord(k)) +
                     (score !== '' ? '<span class="score">' + score + '</span>' : '') + '</span>';
             }).join('')
-            : tNo('暂无关键词');
+            : tNo('No keywords');
         renderLLM(analysis.llm_analysis || {});
     } else {
         kwBox.innerHTML = tNoData();
@@ -258,42 +376,43 @@ async function loadAnalysis() {
 
     try {
         const wc = await api('/api/wordcloud');
-        wcBox.innerHTML = wc.url
-            ? '<img src="' + esc(wc.url) + '" alt="词云图" loading="lazy">'
-            : '<div class="state"><i class="bi bi-cloud-slash"></i><span>暂无词云图片</span></div>';
+        const url = STATIC_MODE ? wordcloudUrl(wc) : wc.url;
+        wcBox.innerHTML = url
+            ? '<img src="' + esc(url) + '" alt="Word cloud" loading="lazy">'
+            : '<div class="state"><i class="bi bi-cloud-slash"></i><span>No word cloud image</span></div>';
     } catch (e) {
-        wcBox.innerHTML = tError('词云加载失败');
+        wcBox.innerHTML = tError('Failed to load word cloud');
     }
 }
 
 function renderLLM(llm) {
     const wrap = $('llm-wrapper');
     const sections = [
-        ['fire', '研究热点', llm.hotspots, llm.hotspots_html],
-        ['arrow-up-right-circle', '技术趋势与演进', llm.trends, llm.trends_html],
-        ['compass', '未来发展方向', llm.future_directions, llm.future_directions_html],
-        ['clipboard2-check', '分析总结', llm.analysis_summary, llm.analysis_summary_html],
+        ['fire', 'Research Hotspots', llmFieldHtml(llm, 'hotspots'), llmFieldPlain(llm, 'hotspots')],
+        ['arrow-up-right-circle', 'Technology Trends & Evolution', llmFieldHtml(llm, 'trends'), llmFieldPlain(llm, 'trends')],
+        ['compass', 'Future Directions', llmFieldHtml(llm, 'future_directions'), llmFieldPlain(llm, 'future_directions')],
+        ['clipboard2-check', 'Analysis Summary', llmFieldHtml(llm, 'analysis_summary'), llmFieldPlain(llm, 'analysis_summary')],
     ];
 
     if (!sections.some(function (s) { return s[2] || s[3]; })) {
-        wrap.innerHTML = '<div class="col-12">' + tNo('暂无 AI 深度分析') + '</div>';
+        wrap.innerHTML = '<div class="col-12">' + tNo('No AI deep analysis') + '</div>';
         return;
     }
 
     wrap.innerHTML = sections.map(function (s, i) {
-        const html = s[3] || (s[2] ? '<p>' + esc(s[2]).replace(/\n/g, '<br>') + '</p>' : '');
+        const html = s[2] || '';
         return '<div class="col-12 analysis-sec">' +
             '<div class="card-e p-3">' +
                 '<h5><i class="bi bi-' + s[0] + '"></i>' +
                     '<span class="badge rounded-pill me-1" style="background:var(--accent);">' + (i + 1) + '</span>' + s[1] +
                 '</h5>' +
-                '<div class="analysis-body">' + (html || '<span class="text-muted">暂无内容</span>') + '</div>' +
+                '<div class="analysis-body">' + (html || '<span class="text-muted">No content</span>') + '</div>' +
             '</div>' +
         '</div>';
     }).join('');
 }
 
-/* ---------- 历史记录 ---------- */
+/* ---------- History ---------- */
 async function loadHistory() {
     const box = $('history-list');
     box.innerHTML = spinner();
@@ -308,10 +427,10 @@ async function loadHistory() {
                     '<span class="hist-date">' + esc(r.date) + '</span>' +
                     '<span class="hist-badge ' + (ok ? 'ok' : 'fail') + '">' + esc(r.status || 'success') + '</span>' +
                     '<span class="hist-meta">' +
-                        '<i class="bi bi-journal-text"></i> ' + (r.papers_count || 0) + ' 篇' +
-                        ' · <i class="bi bi-stars"></i> ' + (r.summaries_count || 0) + ' 摘要' +
-                        (r.email_sent ? ' · <i class="bi bi-envelope-check text-success"></i> 已发邮件' : '') +
-                        (r.took ? ' · <i class="bi bi-stopwatch"></i> ' + r.took + 's' : '') +
+                        '<i class="bi bi-journal-text"></i> ' + (r.papers_count || 0) + ' papers' +
+                        ' · <i class="bi bi-stars"></i> ' + (r.summaries_count || 0) + ' summaries' +
+                        (r.email_sent ? ' · <i class="bi bi-envelope-check text-success"></i> emailed' : '') +
+                        (r.duration_seconds ? ' · <i class="bi bi-stopwatch"></i> ' + r.duration_seconds + 's' : '') +
                         (r.error ? ' · <span class="notag">' + esc(r.error) + '</span>' : '') +
                     '</span>' +
                     '<i class="bi bi-chevron-right ms-auto" style="color:var(--ink-soft)"></i>' +
@@ -325,20 +444,22 @@ async function loadHistory() {
 async function openHistory(date) {
     const modalTitle = $('historyModal-title');
     const body = $('historyModal-body');
-    modalTitle.textContent = date + ' · 当日总结';
+    modalTitle.textContent = date + ' · Summary';
     body.innerHTML = spinner();
     try {
         const d = await api('/api/history/' + date);
         const papers = d.papers || [];
         if (!papers.length) { body.innerHTML = tNoData(); return; }
         body.innerHTML = papers.map(function (p) {
+            const sh = p.summary_html ||
+                (p.summary ? (STATIC_MODE ? renderMarkdown(p.summary) : '<p>' + esc(p.summary) + '</p>') : '');
             return '' +
                 '<div class="card-e p-3 mb-3">' +
-                    '<h6 class="fw-bold">' + esc(p.title || '未知标题') + '</h6>' +
+                    '<h6 class="fw-bold">' + esc(p.title || 'Unknown title') + '</h6>' +
                     '<div class="paper-authors mb-2">' + esc(authors(p.authors)) + '</div>' +
-                    (p.summary_html
-                        ? '<div class="summary-body">' + p.summary_html + '</div>'
-                        : (p.summary ? '<p>' + esc(p.summary) + '</p>' : '<div>' + tNo('无摘要') + '</div>')) +
+                    (sh
+                        ? '<div class="summary-body">' + sh + '</div>'
+                        : '<div>' + tNo('No summary') + '</div>') +
                 '</div>';
         }).join('');
     } catch (e) {
@@ -347,7 +468,7 @@ async function openHistory(date) {
     bootstrap.Modal.getOrCreateInstance($('historyModal')).show();
 }
 
-/* ---------- 事件绑定 (全部通过委托, 无内联) ---------- */
+/* ---------- Event binding (all via delegation, no inline handlers) ---------- */
 function bindEvents() {
     let timer = null;
     $('papers-search').addEventListener('input', function (e) {
@@ -379,7 +500,7 @@ function bindEvents() {
     });
 }
 
-/* ---------- 启动 ---------- */
+/* ---------- Startup ---------- */
 document.addEventListener('DOMContentLoaded', function () {
     loadStats();
     initCategories();

@@ -93,8 +93,8 @@ def count_daily_files():
 
 @app.route("/")
 def index():
-    """渲染单页应用首页。"""
-    return render_template("index.html")
+    """Render the single-page app in dynamic (API) mode."""
+    return render_template("index.html", base_path="", static_mode=False)
 
 
 @app.route("/favicon.ico")

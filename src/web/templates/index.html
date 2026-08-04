@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArXiv 论文雷达 · 追踪与分析</title>
+    <title>ArXiv Paper Radar · Tracking &amp; Analysis</title>
 
-    <!-- Bootstrap 5 (指定版本) -->
+    <!-- Bootstrap 5 (pinned version) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- 展示字体 (衬线标题 + 现代正文) -->
+    <!-- Display fonts (serif headings + modern body) -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
 
     <style>
@@ -38,7 +38,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ---------- 顶部导航 ---------- */
+        /* ---------- Top navigation ---------- */
         .site-navbar {
             position: sticky; top: 0; z-index: 1020;
             background: rgba(250, 249, 242, .92);
@@ -85,7 +85,7 @@
             .tabs-nav { overflow-x: auto; flex-wrap: wrap; }
         }
 
-        /* ---------- 布局 ---------- */
+        /* ---------- Layout ---------- */
         .main-container { max-width: 1140px; padding: 1.5rem 1rem 4rem; margin: 0 auto; }
 
         .section-head { display: flex; align-items: flex-end; justify-content: space-between;
@@ -98,7 +98,7 @@
             box-shadow: 0 1px 2px rgba(31,36,48,.04);
         }
 
-        /* ---------- 概览: 统计卡片 ---------- */
+        /* ---------- Overview: stat cards ---------- */
         .stat-card {
             position: relative; overflow: hidden;
             background: var(--card); border: 1px solid var(--line); border-radius: 18px;
@@ -123,7 +123,7 @@
         .update-strip i { color: var(--accent); }
         .update-strip strong { color: var(--ink); font-family: var(--serif); }
 
-        /* ---------- 论文列表 ---------- */
+        /* ---------- Papers ---------- */
         .toolbar { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
         .toolbar .search-input {
             flex: 1 1 260px; border-radius: 999px; padding-left: 1.1rem;
@@ -161,7 +161,7 @@
         }
         .notag { color: #b45309; }
 
-        /* ---------- 分页 ---------- */
+        /* ---------- Pagination ---------- */
         .pagination .page-link {
             border: 1px solid var(--line); color: var(--ink); border-radius: 10px !important;
             margin: 0 .2rem; min-width: 38px; text-align: center; background: var(--card);
@@ -169,7 +169,7 @@
         .pagination .page-item.active .page-link { background: var(--ink); border-color: var(--ink); color: #fff; }
         .pagination .page-item.disabled .page-link { color: #c8cdd6; }
 
-        /* ---------- 词云 ---------- */
+        /* ---------- Word cloud ---------- */
         .wordcloud-box {
             background: linear-gradient(180deg, #fff, #fbfaf4); border: 1px solid var(--line);
             border-radius: 18px; padding: 1.5rem; text-align: center; min-height: 220px;
@@ -195,7 +195,7 @@
         .analysis-body li { margin-bottom: .25rem; }
         .analysis-body blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--ink-soft); }
 
-        /* ---------- 历史记录 ---------- */
+        /* ---------- History ---------- */
         .hist-row {
             display: flex; align-items: center; gap: 1rem; width: 100%; text-align: left;
             background: transparent; border: none; border-bottom: 1px solid var(--line);
@@ -208,7 +208,7 @@
         .hist-badge.fail { color: #b45309; background: #fdf1e3; }
         .hist-meta { color: var(--ink-soft); font-size: .8rem; }
 
-        /* ---------- 弹窗 ---------- */
+        /* ---------- Modals ---------- */
         .modal-content { border-radius: 20px; border: none; overflow: hidden; }
         .modal-head {
             background: linear-gradient(135deg, var(--ink), #2b343f); color: #fff; padding: 1.1rem 1.4rem;
@@ -224,7 +224,7 @@
         .summary-body h1,.summary-body h2,.summary-body h3 { font-family: var(--serif); color: var(--ink); }
         .summary-body li { margin-bottom: .3rem; }
 
-        /* ---------- 空态 / 加载 ---------- */
+        /* ---------- Empty / loading states ---------- */
         .state {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: .6rem; padding: 3rem 1rem; text-align: center; color: var(--ink-soft);
@@ -241,23 +241,23 @@
 </head>
 <body>
 
-<!-- 顶部导航 -->
+<!-- Top navigation -->
 <nav class="site-navbar">
     <div class="main-container d-flex align-items-center justify-content-between" style="padding-top:0; padding-bottom:0;">
-        <a class="brand" href="/">
+        <a class="brand" href="{{ base_path or '/' }}">
             <span class="brand-badge"><i class="bi bi-broadcast-pin"></i></span>
             <span>
-                <span class="brand-name d-block">论文雷达</span>
+                <span class="brand-name d-block">Paper Radar</span>
                 <span class="brand-sub d-block">ARXIV TRACKER &amp; ANALYSIS</span>
             </span>
         </a>
     </div>
     <div class="tabs-nav">
         <ul class="nav" role="tablist">
-            <li class="nav-item"><button class="nav-link active nav-pill" id="tab-ov-t" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button" role="tab"><i class="bi bi-grid-1x2"></i>概览</button></li>
-            <li class="nav-item"><button class="nav-link nav-pill" id="tab-pa-t" data-bs-toggle="tab" data-bs-target="#tab-papers" type="button" role="tab"><i class="bi bi-journal-text"></i>论文列表</button></li>
-            <li class="nav-item"><button class="nav-link nav-pill" id="tab-tr-t" data-bs-toggle="tab" data-bs-target="#tab-trend" type="button" role="tab"><i class="bi bi-graph-up-arrow"></i>趋势分析</button></li>
-            <li class="nav-item"><button class="nav-link nav-pill" id="tab-hi-t" data-bs-toggle="tab" data-bs-target="#tab-history" type="button" role="tab"><i class="bi bi-clock-history"></i>历史记录</button></li>
+            <li class="nav-item"><button class="nav-link active nav-pill" id="tab-ov-t" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button" role="tab"><i class="bi bi-grid-1x2"></i>Overview</button></li>
+            <li class="nav-item"><button class="nav-link nav-pill" id="tab-pa-t" data-bs-toggle="tab" data-bs-target="#tab-papers" type="button" role="tab"><i class="bi bi-journal-text"></i>Papers</button></li>
+            <li class="nav-item"><button class="nav-link nav-pill" id="tab-tr-t" data-bs-toggle="tab" data-bs-target="#tab-trend" type="button" role="tab"><i class="bi bi-graph-up-arrow"></i>Trends</button></li>
+            <li class="nav-item"><button class="nav-link nav-pill" id="tab-hi-t" data-bs-toggle="tab" data-bs-target="#tab-history" type="button" role="tab"><i class="bi bi-clock-history"></i>History</button></li>
         </ul>
     </div>
 </nav>
@@ -265,52 +265,52 @@
 <main class="main-container">
     <div class="tab-content">
 
-        <!-- ============ 概览 ============ -->
+        <!-- ============ Overview ============ -->
         <div class="tab-pane fade show active" id="tab-overview" role="tabpanel">
             <div class="row g-3">
                 <div class="col-6 col-md-3 col-lg-3">
-                    <div class="stat-card"><div class="stat-label"><i class="bi bi-journal-check"></i>论文总数</div>
-                        <div class="stat-number" id="stat-papers">—</div><div class="stat-hint" id="stat-papers-hint">最近一次抓取</div></div>
+                    <div class="stat-card"><div class="stat-label"><i class="bi bi-journal-check"></i>Total papers</div>
+                        <div class="stat-number" id="stat-papers">—</div><div class="stat-hint" id="stat-papers-hint">Latest fetch</div></div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-3">
-                    <div class="stat-card"><div class="stat-label"><i class="bi bi-stars"></i>已分析</div>
-                        <div class="stat-number" id="stat-summaries">—</div><div class="stat-hint">AI 六节深度分析</div></div>
+                    <div class="stat-card"><div class="stat-label"><i class="bi bi-stars"></i>Analyzed</div>
+                        <div class="stat-number" id="stat-summaries">—</div><div class="stat-hint">AI six-section analysis</div></div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-3">
-                    <div class="stat-card"><div class="stat-label"><i class="bi bi-tags"></i>研究类别</div>
-                        <div class="stat-number" id="stat-categories">—</div><div class="stat-hint" id="stat-categories-hint">去重后的学科分类</div></div>
+                    <div class="stat-card"><div class="stat-label"><i class="bi bi-tags"></i>Categories</div>
+                        <div class="stat-number" id="stat-categories">—</div><div class="stat-hint" id="stat-categories-hint">Unique disciplines</div></div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-3">
-                    <div class="stat-card"><div class="stat-label"><i class="bi bi-keys"></i>热词关键词</div>
-                        <div class="stat-number" id="stat-keywords">—</div><div class="stat-hint" id="stat-keywords-hint">来自趋势分析</div></div>
+                    <div class="stat-card"><div class="stat-label"><i class="bi bi-keys"></i>Keywords</div>
+                        <div class="stat-number" id="stat-keywords">—</div><div class="stat-hint" id="stat-keywords-hint">From trend analysis</div></div>
                 </div>
             </div>
 
             <div class="update-strip mt-3">
                 <i class="bi bi-calendar2-check"></i>
-                <span>最后更新：<strong id="stat-update">—</strong></span>
-                <span class="ms-auto"><i class="bi bi-archive"></i> 累计运行 <strong id="stat-days">—</strong> 天</span>
+                <span>Last updated: <strong id="stat-update">—</strong></span>
+                <span class="ms-auto"><i class="bi bi-archive"></i> Total runs: <strong id="stat-days">—</strong> days</span>
             </div>
         </div>
 
-        <!-- ============ 论文列表 ============ -->
+        <!-- ============ Papers ============ -->
         <div class="tab-pane fade" id="tab-papers" role="tabpanel">
             <div class="section-head">
                 <div>
-                    <h2>论文列表</h2>
-                    <p>浏览 / 检索 / 查看 AI 六节分析</p>
+                    <h2>Papers</h2>
+                    <p>Browse / search / view AI analysis</p>
                 </div>
-                <span class="count-line" id="papers-count-line">共 0 篇</span>
+                <span class="count-line" id="papers-count-line">0 papers</span>
             </div>
 
             <div class="toolbar mb-3">
                 <div class="input-group search-input">
                     <span class="input-group-text bg-transparent border-0"><i class="bi bi-search text-secondary"></i></span>
                     <input type="search" id="papers-search" class="form-control border-0 shadow-none bg-transparent"
-                           placeholder="搜索标题、作者或摘要关键字...">
+                           placeholder="Search title, author or abstract...">
                 </div>
                 <select id="papers-category" class="form-select" style="max-width:200px; border-radius:999px; border:1px solid var(--line);">
-                    <option value="">全部类别</option>
+                    <option value="">All categories</option>
                 </select>
             </div>
 
@@ -318,87 +318,92 @@
             <nav class="mt-4"><ul class="pagination justify-content-center" id="papers-pagination"></ul></nav>
         </div>
 
-        <!-- ============ 趋势分析 ============ -->
+        <!-- ============ Trends ============ -->
         <div class="tab-pane fade" id="tab-trend" role="tabpanel">
             <div class="section-head">
                 <div>
-                    <h2>趋势分析</h2>
-                    <p>研究热点 · 关键词 · AI 深度解读</p>
+                    <h2>Trend Analysis</h2>
+                    <p>Hotspots · Keywords · AI insights</p>
                 </div>
                 <span class="update-strip" style="padding:.4rem .9rem; border-radius:999px;"><i class="bi bi-calendar3"></i><span id="trend-date">—</span></span>
             </div>
 
             <div class="card-e p-3 mb-4">
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-clouds"></i><span class="fw-semibold">研究热点词云</span>
+                    <i class="bi bi-clouds"></i><span class="fw-semibold">Research hotspot word cloud</span>
                 </div>
                 <div class="wordcloud-box">
                     <div id="trend-wordcloud">
-                        <div class="state"><div class="spin"></div><span>加载词云中...</span></div>
+                        <div class="state"><div class="spin"></div><span>Loading word cloud...</span></div>
                     </div>
                 </div>
             </div>
 
             <div class="card-e p-3 mb-4">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-tags"></i><span class="fw-semibold">高频关键词</span>
+                    <i class="bi bi-tags"></i><span class="fw-semibold">Top Keywords</span>
                 </div>
                 <div id="trend-keywords" class="d-flex flex-wrap gap-2"></div>
             </div>
 
             <div class="row g-4" id="llm-wrapper">
-                <div class="col-12"><div class="state"><div class="spin"></div><span>加载深度分析中...</span></div></div>
+                <div class="col-12"><div class="state"><div class="spin"></div><span>Loading deep analysis...</span></div></div>
             </div>
         </div>
 
-        <!-- ============ 历史记录 ============ -->
+        <!-- ============ History ============ -->
         <div class="tab-pane fade" id="tab-history" role="tabpanel">
             <div class="section-head">
                 <div>
-                    <h2>历史记录</h2>
-                    <p>每次流水线的运行结果，点击日期查看当日总结</p>
+                    <h2>History</h2>
+                    <p>Results of each pipeline run; click a date to view its summary</p>
                 </div>
             </div>
             <div class="card-e" id="history-list"></div>
         </div>
     </div>
 
-    <footer class="footer-note">ArXiv 论文追踪与分析 · 内容由 AI 生成，请仔细甄别 · Powered by Flask &amp; Bootstrap</footer>
+    <footer class="footer-note">ArXiv Paper Tracker &amp; Analysis · AI-generated content, use with care · Powered by Flask &amp; Bootstrap</footer>
 </main>
 
-<!-- ============ 论文详情弹窗 ============ -->
+<!-- ============ Paper detail modal ============ -->
 <div class="modal fade" id="paperModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-head d-flex justify-content-between align-items-start">
                 <h5 class="mb-0 me-3" id="paperModal-title">—</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="paperModal-body">
-                <div class="state"><div class="spin"></div><span>加载论文详情...</span></div>
+                <div class="state"><div class="spin"></div><span>Loading paper details...</span></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============ 历史详情弹窗 ============ -->
+<!-- ============ History detail modal ============ -->
 <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-head d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" id="historyModal-title">历史总结</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+                <h5 class="mb-0" id="historyModal-title">History summary</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4" id="historyModal-body">
-                <div class="state"><div class="spin"></div><span>加载当日总结...</span></div>
+                <div class="state"><div class="spin"></div><span>Loading day summary...</span></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Runtime mode config: injected by Flask (dynamic mode) or by the static export script -->
+<script>window.APP_BASE = {{ base_path|tojson }}; window.STATIC_MODE = {{ static_mode|tojson }};</script>
+
 <!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- 应用 JS -->
+<!-- marked: client-side Markdown rendering used in static (GitHub Pages) mode -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<!-- App JS -->
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

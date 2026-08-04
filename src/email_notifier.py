@@ -1,10 +1,16 @@
 """
-邮件通知模块
+Email notification module
 
-从 .env 读取 SMTP_* / EMAIL_* 配置，支持多收件人（逗号分隔）以及
-465(隐式 SSL) / 587(STARTTLS) 双模式发送 HTML 邮件。
+Reads SMTP_* / EMAIL_* settings from .env, supports multiple recipients
+(comma separated) and dual-mode sending over 465 (implicit SSL) or
+587 (STARTTLS) with an HTML body.
 
-配置缺失时仅记录警告并返回 False，绝不抛出异常。
+Missing configuration only logs a warning and returns False; it never raises.
+
+NOTE: The HTML template uses token placeholders (__TOKEN__) combined with
+str.replace() instead of str.format() because the embedded CSS contains
+braces like ``{font-family: ...}`` that str.format() would misinterpret
+as format fields (the cause of a previous "KeyError: 'font-family'").
 """
 import logging
 import os
@@ -20,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 _HTML_TEMPLATE = """\
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <style>
@@ -41,16 +47,16 @@ a:hover{text-decoration:underline;}
 </head>
 <body>
 <div class="container">
-<h1>ArXiv 论文分析报告 - {date}</h1>
+<h1>ArXiv Paper Analysis Report - __DATE__</h1>
 <div class="stats">
-<div class="stat"><strong>{papers_count}</strong> 篇论文</div>
-<div class="stat"><strong>{summaries_count}</strong> 篇已总结</div>
-<div class="stat"><strong>{categories_count}</strong> 个类别</div>
+<div class="stat"><strong>__PAPERS_COUNT__</strong> papers</div>
+<div class="stat"><strong>__SUMMARIES_COUNT__</strong> summarized</div>
+<div class="stat"><strong>__CATEGORIES_COUNT__</strong> categories</div>
 </div>
-{paper_html}
+__PAPER_HTML__
 <div class="footer">
-<p><a href="{report_link}">查看分析报告</a></p>
-<p>这是一封自动发送的邮件，请勿回复。</p>
+<p><a href="__REPORT_LINK__">View the full analysis report</a></p>
+<p>This is an automated email, please do not reply.</p>
 </div>
 </div>
 </body>
@@ -105,15 +111,15 @@ class EmailNotifier:
         Returns True only if the message was accepted and sent by the SMTP server.
         """
         if not self.config.get("enabled", True):
-            logger.info("邮件功能在配置中已禁用，跳过发送")
+            logger.info("Email is disabled in the config, skipping")
             return False
 
         if not self.configured():
-            logger.warning("SMTP/EMAIL 配置不完整，跳过发送邮件")
+            logger.warning("SMTP/EMAIL configuration is incomplete, skipping email")
             return False
 
         html = self._build_html_body(date, papers, summaries, statistics, report_link)
-        subject = f"ArXiv 论文分析报告 - {date}"
+        subject = f"ArXiv Paper Analysis Report - {date}"
 
         message = MIMEMultipart()
         message["From"] = self.from_addr
@@ -132,10 +138,10 @@ class EmailNotifier:
                     server.starttls(context=context)
                     server.login(self.smtp_username, self.smtp_password)
                     server.send_message(message)
-            logger.info("邮件发送成功，收件人: %s", ", ".join(self.to_addrs))
+            logger.info("Email sent successfully to: %s", ", ".join(self.to_addrs))
             return True
         except Exception as exc:  # noqa: BLE001 - send failure must not crash the pipeline
-            logger.error("发送邮件失败: %s: %s", type(exc).__name__, exc)
+            logger.error("Failed to send email: %s: %s", type(exc).__name__, exc)
             return False
 
     def _build_html_body(
@@ -157,17 +163,18 @@ class EmailNotifier:
                 title=paper.get("title", ""),
                 publication_date=paper.get("published_date", ""),
                 categories=", ".join(paper.get("categories", []) or []),
-                authors=", ".join(paper.get("authors", []) or []) or "未知",
-                summary=summary_map.get(paper_id) or "（暂无摘要）",
+                authors=", ".join(paper.get("authors", []) or []) or "Unknown",
+                summary=summary_map.get(paper_id) or "No summary available yet.",
             ))
 
         stats = statistics or {}
-        paper_html = "\n".join(blocks) or "<p>暂无论文总结。</p>"
-        return _HTML_TEMPLATE.format(
-            date=date,
-            papers_count=stats.get("total_papers", len(papers or [])),
-            summaries_count=sum(1 for s in summaries or [] if s.get("summary")),
-            categories_count=stats.get("categories_count", len(categories)),
-            paper_html=paper_html,
-            report_link=report_link or "#",
+        paper_html = "\n".join(blocks) or "<p>No paper summaries yet.</p>"
+        return (
+            _HTML_TEMPLATE
+            .replace("__DATE__", date)
+            .replace("__PAPERS_COUNT__", str(stats.get("total_papers", len(papers or []))))
+            .replace("__SUMMARIES_COUNT__", str(sum(1 for s in summaries or [] if s.get("summary"))))
+            .replace("__CATEGORIES_COUNT__", str(stats.get("categories_count", len(categories))))
+            .replace("__PAPER_HTML__", paper_html)
+            .replace("__REPORT_LINK__", report_link or "#")
         )

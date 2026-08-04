@@ -213,14 +213,27 @@ class TrendAnalyzer:
         """Generate a deep trend interpretation with the LLM client."""
         categories = self._uniq_categories(papers)
         top_keywords = ", ".join(k["word"] for k in keywords[:30])
+        is_en = self.language != "zh"
+        system_prompt = (
+            "You are an experienced AI research analyst. Please answer in English."
+            if is_en
+            else "你是资深 AI 研究分析专家，请用中文回答。"
+        )
+        field_instruction = (
+            "Please give a field-structured trend interpretation, returning the four fields, "
+            "each on its own line formatted as 'hotspots: ...', 'trends: ...', "
+            "'future_directions: ...', 'analysis_summary: ...'."
+            if is_en
+            else "请用中文给出字段化的趋势解读，分别返回四个字段，每项单独一行、"
+            "形如 'hotspots: ...'、'trends: ...'、'future_directions: ...'、"
+            "'analysis_summary: ...'。"
+        )
 
         prompt = (
-            f"以下是最近 {len(papers)} 篇 arXiv 论文.\n"
-            f"研究类别: {', '.join(categories)}\n"
-            f"高频关键词: {top_keywords}\n\n"
-            "请用中文给出字段化的趋势解读，分别返回四个字段，每项单独一行、"
-            "形如 'hotspots: ...'、'trends: ...'、'future_directions: ...'、"
-            "'analysis_summary: ...'. "
+            f"Here are the latest {len(papers)} arXiv papers.\n"
+            f"Research categories: {', '.join(categories)}\n"
+            f"Top keywords: {top_keywords}\n\n"
+            f"{field_instruction}"
         )
 
         try:
@@ -229,15 +242,16 @@ class TrendAnalyzer:
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 messages=[
-                    {"role": "system", "content": "你是资深 AI 研究分析专家，请用中文回答。"},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ],
             )
             raw = response.choices[0].message.content or ""
             return self._parse_llm_trend(raw)
         except Exception as exc:  # noqa: BLE001 - LLM failure must not abort the run
-            logger.error("LLM 趋势分析失败: %s", exc)
-            return {"analysis_summary": f"趋势深度分析生成失败（{exc}）"}
+            logger.error("LLM trend analysis failed: %s", exc)
+            note = "Trend analysis generation failed" if is_en else "趋势深度分析生成失败"
+            return {"analysis_summary": f"{note}（{exc}）"}
 
     @staticmethod
     def _parse_llm_trend(raw: str) -> Dict[str, str]:

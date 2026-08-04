@@ -1,9 +1,10 @@
 """
-论文分析模块
+Paper analysis module
 
-使用 OpenAI SDK (openai==2.41.0) 分析单篇论文，生成与原有 main.py 一致的
-六节结构分析，并从中抽取一句式中文小结。分析失败时不会抛出异常，而是返回
-一个简短的错误标记，保证整条流水线不会因单篇论文而崩溃。
+Uses the OpenAI SDK (openai==2.41.0) to analyze a single paper, producing the
+same six-section structured analysis as before plus a one-line summary in the
+configured output language. Failures do not raise; they return a short error
+marker so a single bad paper never crashes the pipeline.
 """
 import logging
 import os
@@ -11,17 +12,25 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-_FALLBACK_NOTE = "该论文分析生成失败，请稍后重试。"
+_FALLBACK_NOTES = {
+    "zh": "该论文分析生成失败，请稍后重试。",
+    "en": "Analysis generation failed for this paper; please try again later.",
+}
+
+
+def _fallback_note(language: str) -> str:
+    return _FALLBACK_NOTES.get(str(language).lower()[:2], _FALLBACK_NOTES["en"])
 
 
 class PaperAnalyzer:
-    """基于 OpenAI 兼容接口的论文分析器。"""
+    """Analyze papers through an OpenAI-compatible interface."""
 
     def __init__(self, config: Optional[Dict[str, Any]] = None, client: Optional[Any] = None):
         self.config = config or {}
         llm_cfg = config.get("llm", {}) if config else {}
         self.temperature = float(llm_cfg.get("temperature", 0.2))
         self.max_tokens = int(llm_cfg.get("max_tokens", 2048))
+        self.language = str(config.get("language", "en") or "en").lower()
 
         self.api_key = os.getenv("LLM_API_KEY")
         self.base_url = os.getenv("LLM_BASE_URL")
@@ -46,21 +55,18 @@ class PaperAnalyzer:
         return self.client is not None and bool(self.model)
 
     def analyze(self, paper: Dict[str, Any]) -> Dict[str, str]:
-        """分析单篇论文。
+        """Analyze a single paper, returning {"summary": str, "analysis": str}.
 
-        Args:
-            paper: 规范化的论文 dict。
-
-        Returns:
-            形如 {"summary": str, "analysis": str}；失败时返回中文错误占位。
+        On failure returns a short localized error marker instead of raising.
         """
+        note = _fallback_note(self.language)
         if not self.available():
-            note = _FALLBACK_NOTE + "（LLM 客户端未就绪）"
-            return {"summary": note, "analysis": "**" + note + "**"}
+            note = f"{note} (LLM client not ready)"
+            return {"summary": note, "analysis": f"**{note}**"}
 
         author_names = ", ".join(paper.get("authors", []) or [])
         categories = ", ".join(paper.get("categories", []) or [])
-        abstract = paper.get("abstract", "") or "（无摘要）"
+        abstract = paper.get("abstract", "") or "(no abstract)"
 
         prompt = self._build_prompt(
             title=paper.get("title", ""),
@@ -70,51 +76,57 @@ class PaperAnalyzer:
             abstract=abstract,
         )
 
+        system_prompt = (
+            "You are a research assistant specializing in summarizing and "
+            "analyzing academic papers. Please reply in English."
+            if self.language != "zh"
+            else "你是一位专门总结和分析学术论文的研究助手。请使用中文回复。"
+        )
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 messages=[
-                    {"role": "system", "content": "你是一位专门总结和分析学术论文的研究助手。请使用中文回复。"},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ],
             )
             content = response.choices[0].message.content or ""
             analysis = content.strip()
             summary = self._extract_summary(analysis)
-            logger.info("论文分析完成: %s", paper.get("id", paper.get("title", "")))
+            logger.info("Paper analysis complete: %s", paper.get("id", paper.get("title", "")))
             return {"summary": summary, "analysis": analysis}
-        except Exception as exc:  # noqa: BLE001 - 单篇失败不应中断整个流水线
-            note = f"{_FALLBACK_NOTE}（{exc}）"
-            logger.error("分析论文失败 %s: %s", paper.get("id", ""), exc)
-            return {"summary": note, "analysis": "**" + note + "**"}
+        except Exception as exc:  # noqa: BLE001 - single-paper failure must not stop the pipeline
+            note = f"{_fallback_note(self.language)} ({exc})"
+            logger.error("Failed to analyze paper %s: %s", paper.get("id", ""), exc)
+            return {"summary": note, "analysis": f"**{note}**"}
 
-    @staticmethod
-    def _build_prompt(title: str, authors: str, categories: str, published: str, abstract: str) -> str:
-        return f"""论文标题: {title}
-        作者: {authors or "未知"}
-        类别: {categories}
-        发布时间: {published}
-        摘要: {abstract}
+    def _build_prompt(self, title: str, authors: str, categories: str, published: str, abstract: str) -> str:
+        language_label = "English" if self.language != "zh" else "中文"
+        return f"""Paper title: {title}
+Authors: {authors or "Unknown"}
+Categories: {categories}
+Published: {published}
+Abstract: {abstract}
 
-        请分析这篇研究论文。首先单独用一行给出"简明摘要"（3-5 句话），
-        不要添加任何标题前缀，随后依次给出以下 6 节（每节以类似 "## 2. 主要贡献与创新" 的标题开头）：
-        1. 简明摘要
-        2. 主要贡献与创新
-        3. 研究方法（具体技术、工具、数据集）
-        4. 实验结果（数据集、实验设置、结果与结论）
-        5. 潜在影响
-        6. 局限性与未来方向
+Analyze this research paper. First, give a concise summary (3-5 sentences)
+as a single line WITHOUT any title prefix, then provide the following
+6 sections, each starting with a header like "## 2. Key Contributions and Innovations":
+1. Concise Summary
+2. Key Contributions and Innovations
+3. Research Method (specific techniques, tools, datasets)
+4. Experimental Results (datasets, setup, findings and conclusions)
+5. Potential Impact
+6. Limitations and Future Directions
 
-        请全程使用中文，以纯文本按自然段落输出。
-        """
+Please reply entirely in {language_label} as plain paragraphs.
+"""
 
-    @staticmethod
-    def _extract_summary(analysis: str) -> str:
-        """Extract the concise summary from the analysis text (first non-empty line)."""
+    def _extract_summary(self, analysis: str) -> str:
         text = analysis.strip()
         if not text:
-            return _FALLBACK_NOTE
+            return _fallback_note(self.language)
         first = next((p.strip() for p in text.split("\n") if p.strip()), "")
         return first.lstrip("# ").strip() if first else text[:120]
