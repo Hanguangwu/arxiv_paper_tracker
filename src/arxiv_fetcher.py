@@ -6,9 +6,14 @@ ArXiv 论文抓取模块
 """
 import datetime
 import logging
+import time
 from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
+
+_HTTP_STATUS_TOO_MANY_REQUESTS = 429
+_MAX_RETRIES = 3
+_RETRY_BACKOFF_SECONDS = (15, 60, 300)
 
 
 def _to_paper_dict(entry: Any) -> Dict[str, Any]:
@@ -54,13 +59,17 @@ def fetch_papers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
         config: 顶层配置字典，使用 ``config["arxiv"]`` 子配置。
 
     Returns:
-        规范化的论文字典列表，可能为空；网络或解析异常时返回空列表并记录日志。
+        规范化的论文字典列表，可为空（无匹配结果）。
+
+    Raises:
+        RuntimeError: 抓取连续失败（如 arXiv 服务端 429 限流）且重试用尽时抛出，
+            由调用方标记本次运行为失败，避免产生"0 篇论文但成功"的误导记录。
     """
     try:
         import arxiv
     except ImportError:
         logger.error("未安装 arxiv 库 (pip install arxiv==4.0.1)，无法抓取论文")
-        return []
+        raise
 
     arxiv_cfg = config.get("arxiv", {})
     categories = list(arxiv_cfg.get("categories") or [])
@@ -89,12 +98,29 @@ def fetch_papers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
         sort_order=arxiv.SortOrder.Descending,
     )
 
-    try:
-        client = arxiv.Client()
-        results = list(client.results(search))
-    except Exception as exc:  # noqa: BLE001 - 网络/解析失败不应中断流水线
-        logger.error("抓取 arXiv 论文失败: %s", exc)
-        return []
+    client = arxiv.Client()
+    last_error = None
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            results = list(client.results(search))
+            break
+        except Exception as exc:  # noqa: BLE001 - 429/网络抖动等瞬时错误需重试
+            last_error = exc
+            status = getattr(exc, "status", None) or getattr(exc, "status_code", None)
+            status = getattr(exc, "code", None) or status
+            if attempt < _MAX_RETRIES:
+                wait = _RETRY_BACKOFF_SECONDS[attempt - 1]
+                logger.warning(
+                    "arXiv 抓取第 %d/%d 次失败 (status=%s): %s，%ds 后重试",
+                    attempt, _MAX_RETRIES, status, exc, wait,
+                )
+                time.sleep(wait)
+            else:
+                logger.error("arXiv 抓取连续 %d 次失败 (status=%s): %s",
+                             _MAX_RETRIES, status, exc)
+
+    else:
+        raise RuntimeError(f"arXiv 抓取失败，已重试 {_MAX_RETRIES} 次: {last_error}") from last_error
 
     papers = [_to_paper_dict(entry) for entry in results]
     logger.info("抓取到 %d 篇论文", len(papers))
