@@ -1,6 +1,17 @@
 {
   "records": [
     {
+      "date": "2026-08-16",
+      "status": "success",
+      "papers_count": 30,
+      "summaries_count": 30,
+      "email_sent": 1,
+      "took_seconds": 1624.09,
+      "error": "",
+      "duration_seconds": 1624.09,
+      "report_link": "/home/runner/work/arxiv_paper_tracker/arxiv_paper_tracker/src/data/reports/report_2026-08-16.md"
+    },
+    {
       "date": "2026-08-09",
       "status": "success",
       "papers_count": 30,
