@@ -1,0 +1,399 @@
+{
+  "keywords": [
+    {
+      "word": "model",
+      "score": 0.09691695569438467
+    },
+    {
+      "word": "models",
+      "score": 0.08117966363549442
+    },
+    {
+      "word": "data",
+      "score": 0.07277709567235255
+    },
+    {
+      "word": "language",
+      "score": 0.07104924481753229
+    },
+    {
+      "word": "foundation",
+      "score": 0.06920046203775794
+    },
+    {
+      "word": "training",
+      "score": 0.06572387008017636
+    },
+    {
+      "word": "agent",
+      "score": 0.06280210281565879
+    },
+    {
+      "word": "diffusion",
+      "score": 0.06179963414136755
+    },
+    {
+      "word": "analysis",
+      "score": 0.058692649325390554
+    },
+    {
+      "word": "record",
+      "score": 0.05845796487865461
+    },
+    {
+      "word": "using",
+      "score": 0.057214654150168354
+    },
+    {
+      "word": "agents",
+      "score": 0.05659933820823814
+    },
+    {
+      "word": "world",
+      "score": 0.05602952426576306
+    },
+    {
+      "word": "time",
+      "score": 0.053902750474858735
+    },
+    {
+      "word": "state",
+      "score": 0.053254625989729035
+    },
+    {
+      "word": "based",
+      "score": 0.05191540159066602
+    },
+    {
+      "word": "human",
+      "score": 0.05021684532614132
+    },
+    {
+      "word": "spatial",
+      "score": 0.04954201988449801
+    },
+    {
+      "word": "level",
+      "score": 0.049036616069717286
+    },
+    {
+      "word": "task",
+      "score": 0.0489302359072516
+    },
+    {
+      "word": "systems",
+      "score": 0.0471969014474188
+    },
+    {
+      "word": "learning",
+      "score": 0.04686849678487377
+    },
+    {
+      "word": "loss",
+      "score": 0.04443611768403746
+    },
+    {
+      "word": "pipeline",
+      "score": 0.043327492584443246
+    },
+    {
+      "word": "research",
+      "score": 0.04216715153450215
+    },
+    {
+      "word": "proofs",
+      "score": 0.04010744026048246
+    },
+    {
+      "word": "output",
+      "score": 0.03993997614276826
+    },
+    {
+      "word": "simulations",
+      "score": 0.039288461978274423
+    },
+    {
+      "word": "verifier",
+      "score": 0.038371020213197146
+    },
+    {
+      "word": "retrieval",
+      "score": 0.038342985232403475
+    },
+    {
+      "word": "text",
+      "score": 0.038222751302110905
+    },
+    {
+      "word": "global",
+      "score": 0.03780097352958206
+    },
+    {
+      "word": "test",
+      "score": 0.03777730096617624
+    },
+    {
+      "word": "target",
+      "score": 0.03615033786864302
+    },
+    {
+      "word": "space",
+      "score": 0.03535564810878293
+    },
+    {
+      "word": "error",
+      "score": 0.03511024236793544
+    },
+    {
+      "word": "environments",
+      "score": 0.03239119549022309
+    },
+    {
+      "word": "code",
+      "score": 0.03229230736332661
+    },
+    {
+      "word": "end",
+      "score": 0.031915190395139105
+    },
+    {
+      "word": "clutter",
+      "score": 0.03181765160226119
+    },
+    {
+      "word": "information",
+      "score": 0.031351715789071186
+    },
+    {
+      "word": "trained",
+      "score": 0.0309543069435216
+    },
+    {
+      "word": "methods",
+      "score": 0.030777595020853386
+    },
+    {
+      "word": "textseal",
+      "score": 0.030625933704844118
+    },
+    {
+      "word": "image",
+      "score": 0.030543557128458666
+    },
+    {
+      "word": "memory",
+      "score": 0.030464548729006793
+    },
+    {
+      "word": "performance",
+      "score": 0.030281532602095276
+    },
+    {
+      "word": "real",
+      "score": 0.030067269145213064
+    },
+    {
+      "word": "luggage",
+      "score": 0.029815166724361884
+    },
+    {
+      "word": "particle",
+      "score": 0.02885063785184958
+    },
+    {
+      "word": "large",
+      "score": 0.028685227296624323
+    },
+    {
+      "word": "introduce",
+      "score": 0.02863279795473551
+    },
+    {
+      "word": "single",
+      "score": 0.028443638031381144
+    },
+    {
+      "word": "cost",
+      "score": 0.028299814545844026
+    },
+    {
+      "word": "generation",
+      "score": 0.027690083705280637
+    },
+    {
+      "word": "number",
+      "score": 0.027601817388716334
+    },
+    {
+      "word": "including",
+      "score": 0.02750726275139523
+    },
+    {
+      "word": "does",
+      "score": 0.026545601352976286
+    },
+    {
+      "word": "set",
+      "score": 0.025364010421190762
+    },
+    {
+      "word": "token",
+      "score": 0.02416190305869676
+    }
+  ],
+  "topics": [
+    {
+      "id": 1,
+      "words": [
+        "model",
+        "models",
+        "data",
+        "language",
+        "foundation",
+        "training",
+        "agent",
+        "diffusion",
+        "analysis",
+        "record",
+        "using",
+        "agents"
+      ],
+      "score": 0.067701
+    },
+    {
+      "id": 2,
+      "words": [
+        "world",
+        "time",
+        "state",
+        "based",
+        "human",
+        "spatial",
+        "level",
+        "task",
+        "systems",
+        "learning",
+        "loss",
+        "pipeline"
+      ],
+      "score": 0.049555
+    },
+    {
+      "id": 3,
+      "words": [
+        "research",
+        "proofs",
+        "output",
+        "simulations",
+        "verifier",
+        "retrieval",
+        "text",
+        "global",
+        "test",
+        "target",
+        "space",
+        "error"
+      ],
+      "score": 0.03822
+    },
+    {
+      "id": 4,
+      "words": [
+        "environments",
+        "code",
+        "end",
+        "clutter",
+        "information",
+        "trained",
+        "methods",
+        "textseal",
+        "image",
+        "memory",
+        "performance",
+        "real"
+      ],
+      "score": 0.031124
+    },
+    {
+      "id": 5,
+      "words": [
+        "luggage",
+        "particle",
+        "large",
+        "introduce",
+        "single",
+        "cost",
+        "generation",
+        "number",
+        "including",
+        "does",
+        "set",
+        "token"
+      ],
+      "score": 0.027633
+    }
+  ],
+  "llm_analysis": {
+    "hotspots": "Foundation model scaling & alignment (LLMs/VLMs), Agentic AI & multi-agent systems (planning, tool use, world modeling), Diffusion/generative models for high-fidelity synthesis (video, 3D, scientific data), Retrieval-Augmented Generation (RAG) & long-context processing, AI for Scientific Discovery (simulation, physics-informed ML), Trustworthy AI (verification, robustness, safety, formal proofs).",
+    "trends": "Shift from static models to stateful, interactive agents operating in environments (\"world models\"), Convergence of language, vision, and action (embodied AI / spatial intelligence), Rise of synthetic data & self-play for post-training alignment, Increased focus on inference-time compute scaling (test-time training, search, verifiers), Hardware-aware model design & efficient training/inference pipelines, Formal verification & mechanistic interpretability gaining traction.",
+    "future_directions": "Autonomous agents with long-horizon reasoning & continual learning in open worlds, Unified world models integrating physics, semantics, and geometry for simulation & planning, Scaling laws for agentic systems & inference compute, Provably safe & aligned foundation models via formal methods, Personalized & private on-device foundation models, AI-driven scientific method automation (hypothesis -> simulation -> validation).",
+    "analysis_summary": "The field is rapidly consolidating around foundation models as universal backbones, extended into agentic systems that perceive, reason, and act in complex environments. Core tensions drive research: scaling vs. efficiency, autonomy vs. control/verification, generality vs. specialization. The integration of language, vision, physics, and action (spatial/temporal reasoning) defines the next frontier, with rigorous evaluation, synthetic data, and formal guarantees becoming critical for real-world deployment."
+  },
+  "wordcloud": {
+    "path": "/home/runner/work/arxiv_paper_tracker/arxiv_paper_tracker/src/data/analysis/wordcloud_2026-11-01.png"
+  },
+  "statistics": {
+    "total_papers": 30,
+    "total_authors": 145,
+    "categories_count": 25,
+    "category_distribution": {
+      "cs.AI": 20,
+      "cs.LG": 14,
+      "cs.CL": 7,
+      "cs.CV": 6,
+      "cs.CR": 3,
+      "cs.RO": 2,
+      "cs.NE": 1,
+      "eess.SY": 1,
+      "physics.ao-ph": 1,
+      "stat.ML": 1
+    },
+    "primary_distribution": {
+      "cs.AI": 10,
+      "cs.LG": 6,
+      "cs.CV": 4,
+      "cs.CL": 2,
+      "cs.RO": 2,
+      "eess.SY": 1,
+      "physics.ao-ph": 1,
+      "cs.CR": 1,
+      "cs.NI": 1,
+      "cs.CE": 1
+    },
+    "top_authors": {
+      "Zhongang Cai": 2,
+      "Ziwei Liu": 2,
+      "Haizhao Yang": 2,
+      "Moshe Shenfeld": 1,
+      "Eliad Tsfadia": 1,
+      "Katrina Ligett": 1,
+      "Nicolas Dufour": 1,
+      "Elouan Gardès": 1,
+      "Amil Dravid": 1,
+      "Patrick Pérez": 1
+    },
+    "top_keywords": [
+      "model",
+      "models",
+      "data",
+      "language",
+      "foundation",
+      "training",
+      "agent",
+      "diffusion",
+      "analysis",
+      "record"
+    ]
+  },
+  "date": "2026-11-01"
+}
